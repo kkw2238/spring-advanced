@@ -46,7 +46,7 @@ class ManagerServiceTest {
 
         // when & then
         InvalidRequestException exception = assertThrows(InvalidRequestException.class, () -> managerService.getManagers(todoId));
-        assertEquals("Manager not found", exception.getMessage());
+        assertEquals("Todo not found", exception.getMessage());
     }
 
     @Test
@@ -91,7 +91,7 @@ class ManagerServiceTest {
         // then
         assertEquals(1, managerResponses.size());
         assertEquals(mockManager.getId(), managerResponses.get(0).getId());
-        assertEquals(mockManager.getUser().getEmail(), managerResponses.get(0).getUser().getEmail());
+        assertEquals(mockManager.getUser().getEmail(), managerResponses.get(0).getUser().email());
     }
 
     @Test // 테스트코드 샘플
@@ -118,7 +118,7 @@ class ManagerServiceTest {
 
         // then
         assertNotNull(response);
-        assertEquals(managerUser.getId(), response.getUser().getId());
-        assertEquals(managerUser.getEmail(), response.getUser().getEmail());
+        assertEquals(managerUser.getId(), response.getUser().id());
+        assertEquals(managerUser.getEmail(), response.getUser().email());
     }
 }
