@@ -38,12 +38,14 @@ public class ManagerController {
 
     @DeleteMapping("/todos/{todoId}/managers/{managerId}")
     public void deleteManager(
-            @RequestHeader("Authorization") String bearerToken,
+            @Auth AuthUser authUser,
             @PathVariable long todoId,
             @PathVariable long managerId
     ) {
-        Claims claims = jwtUtil.extractClaims(bearerToken.substring(7));
-        long userId = Long.parseLong(claims.getSubject());
+        /*  변경된 코드 : 기존 Token으로 받던 내용을 authUser 객체로 변환
+            claims에서 내용을 꺼내던 작업을 authUser에서 꺼내 쓰도록 변경
+         */
+        long userId = authUser.getId();
         managerService.deleteManager(userId, todoId, managerId);
     }
 }
