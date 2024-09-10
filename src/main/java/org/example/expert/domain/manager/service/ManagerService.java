@@ -36,7 +36,8 @@ public class ManagerService {
         Todo todo = todoRepository.findById(todoId)
                 .orElseThrow(() -> new InvalidRequestException("Todo not found"));
 
-        if (!ObjectUtils.nullSafeEquals(user.getId(), todo.getUser().getId())) {
+
+        if (!isSameUser(user, todo.getUser())) {
             throw new InvalidRequestException("담당자를 등록하려고 하는 유저가 일정을 만든 유저가 유효하지 않습니다.");
         }
 
@@ -93,5 +94,19 @@ public class ManagerService {
         }
 
         managerRepository.delete(manager);
+    }
+
+    /** 추가 코드 : 두 유저가 일치하는지 확인하는 메서드
+     * user1 / user2 둘 중 하나라도 null일 경우 false 반환
+     * @param user1 user객체A
+     * @param user2 user객체B
+     * @return True : 두 유저가 동일한 경우 / False : 둘 중 한명이라도 null이거나 두 유저가 일치하지 않는 경우
+     */
+    private boolean isSameUser(User user1, User user2) {
+        if(user1 == null || user2 == null) {
+            return false;
+        }
+
+        return !ObjectUtils.nullSafeEquals(user1.getId(), user2.getId());
     }
 }
