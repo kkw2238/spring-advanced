@@ -6,15 +6,22 @@ import org.example.expert.domain.user.dto.request.UserRoleChangeRequest;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
 import org.example.expert.domain.user.repository.UserRepository;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Component
 public class UserAdminService {
 
     private final UserRepository userRepository;
 
+    /**
+     * 유저 권한 변경
+     * @param userId 권한을 변경할 유저Id
+     * @param userRoleChangeRequest 변경할 권한
+     */
     @Transactional
     public void changeUserRole(long userId, UserRoleChangeRequest userRoleChangeRequest) {
         User user = userRepository.findById(userId).orElseThrow(() -> new InvalidRequestException("User not found"));

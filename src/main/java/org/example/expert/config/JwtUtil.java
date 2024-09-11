@@ -50,7 +50,10 @@ public class JwtUtil {
 
     public String substringToken(String tokenValue) {
         if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(BEARER_PREFIX)) {
-            return tokenValue.substring(7);
+            /*
+                수정된 코드 : 7에서 BEARER_PREFIX.length()로 변경
+             */
+            return tokenValue.substring(BEARER_PREFIX.length());
         }
         throw new ServerException("Not Found Token");
     }

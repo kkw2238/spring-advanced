@@ -2,14 +2,11 @@ package org.example.expert.domain.user.dto.response;
 
 import lombok.Getter;
 
-@Getter
-public class UserResponse {
+/** 수정된 코드 : record Class로 변환
+ * 불변성 데이터를 저장하는 용도로 사용하므로 record Class로 변경
+ * @param id 유저 id
+ * @param email 유저 email
+ */
+public record UserResponse(Long id, String email) {
 
-    private final Long id;
-    private final String email;
-
-    public UserResponse(Long id, String email) {
-        this.id = id;
-        this.email = email;
-    }
 }
