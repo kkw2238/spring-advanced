@@ -1,4 +1,4 @@
-package org.example.expert.config;
+package org.example.expert.config.utility;
 
 import org.springframework.stereotype.Component;
 

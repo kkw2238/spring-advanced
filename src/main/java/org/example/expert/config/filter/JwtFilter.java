@@ -1,4 +1,4 @@
-package org.example.expert.config;
+package org.example.expert.config.filter;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.expert.config.JwtUtil;
+import org.example.expert.config.Protocol;
 import org.example.expert.domain.user.enums.UserRole;
 
 import java.io.IOException;
@@ -32,6 +34,7 @@ public class JwtFilter implements Filter {
 
         String url = httpRequest.getRequestURI();
 
+        // 로그인/회원가입의 경우 토큰 검증을 하지 않는다.
         if (url.startsWith("/auth")) {
             chain.doFilter(request, response);
             return;
@@ -55,19 +58,19 @@ public class JwtFilter implements Filter {
                 return;
             }
 
-            UserRole userRole = UserRole.valueOf(claims.get("userRole", String.class));
+            String userRoleString = claims.get(Protocol.USER_ROLE, String.class);
+            UserRole userRole = UserRole.valueOf(userRoleString);
 
-            httpRequest.setAttribute("userId", Long.parseLong(claims.getSubject()));
-            httpRequest.setAttribute("email", claims.get("email"));
-            httpRequest.setAttribute("userRole", claims.get("userRole"));
+            httpRequest.setAttribute(Protocol.USER_ID, Long.parseLong(claims.getSubject()));
+            httpRequest.setAttribute(Protocol.USER_EMAIL, claims.get(Protocol.USER_EMAIL));
+            httpRequest.setAttribute(Protocol.USER_ROLE, userRoleString);
 
-            if (url.startsWith("/admin")) {
-                // 관리자 권한이 없는 경우 403을 반환합니다.
-                if (!UserRole.ADMIN.equals(userRole)) {
-                    httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "관리자 권한이 없습니다.");
-                    return;
-                }
-                chain.doFilter(request, response);
+            /* 수정된 코드 : 이중 If문을 한 줄로 정리
+             * Admin URL에 권한 없는 사람이 접근하는 상황 외에는 무조건 chain.doFilter를 호출 했기에
+               해당 상황일 경우에만 체크하도록 변경
+             */
+            if (isAdminURL(url) && !isAdmin(userRole)) {
+                httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "관리자 권한이 없습니다.");
                 return;
             }
 
@@ -85,6 +88,23 @@ public class JwtFilter implements Filter {
             log.error("Invalid JWT token, 유효하지 않는 JWT 토큰 입니다.", e);
             httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "유효하지 않는 JWT 토큰입니다.");
         }
+    }
+
+    /** 추가된 코드 : URL이 Admin 관련 URL인지 확인하는 메서드
+     * @param url 확인할 URL
+     * @return True : Admin 관련 URL / False : 그 외의 URL
+     */
+    private boolean isAdminURL(String url) {
+        return url.startsWith("/admin");
+    }
+
+    /**
+     * 해당 유저 권한이 Admin인지 판별하는 메서드
+     * @param userRole 유저 권한
+     * @return True : 해당 권한이 ADMIN / False : 해당 권한이 ADMIN이 아닌 경우
+     */
+    private boolean isAdmin(UserRole userRole) {
+        return UserRole.ADMIN.equals(userRole);
     }
 
     @Override
