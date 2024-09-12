@@ -35,7 +35,7 @@ public class UserService {
         /* 수정된 코드 : 비밀번호 확인 메서드 분할
             비밀번호가 조건에 맞는지 확인
          */
-        if (passwordUtil.isValidPassword(userChangePasswordRequest.getNewPassword())) {
+        if (!passwordUtil.isValidPassword(userChangePasswordRequest.getNewPassword())) {
             throw new InvalidRequestException("새 비밀번호는 8자 이상이어야 하고, 숫자와 대문자를 포함해야 합니다.");
         }
 
