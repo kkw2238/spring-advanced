@@ -5,10 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.example.expert.domain.common.dto.AuthUser;
-import org.example.expert.domain.user.entity.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -20,7 +18,7 @@ public class UserRoleLogAspect {
     /**
      * RoleLog라는 Annotation에게 반응하게 작성
      */
-    @Pointcut("@annotation(org.example.expert.config.annotation.RoleLog)")
+    @Pointcut("@annotation(org.example.expert.domain.common.annotation.RoleLog)")
     public void adminLayer() { }
 
     /**
