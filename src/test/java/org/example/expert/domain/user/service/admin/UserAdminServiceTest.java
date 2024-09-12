@@ -29,9 +29,6 @@ public class UserAdminServiceTest {
     @InjectMocks
     private UserAdminService userAdminService;
 
-    @Mock
-    private User user;
-
     @Test
     public void 권한을_변경하고자하는_유저가_없을_경우_IRE를_반환한다() {
         long userId = 1L;

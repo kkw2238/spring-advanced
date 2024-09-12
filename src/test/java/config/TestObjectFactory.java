@@ -1,4 +1,4 @@
-package org.example.expert;
+package config;
 
 import org.example.expert.domain.comment.entity.Comment;
 import org.example.expert.domain.common.dto.AuthUser;

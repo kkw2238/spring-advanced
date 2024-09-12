@@ -1,6 +1,6 @@
 package org.example.expert.domain.user.service.user;
 
-import org.example.expert.TestObjectFactory;
+import config.TestObjectFactory;
 import org.example.expert.config.password.PasswordEncoder;
 import org.example.expert.config.utility.PasswordUtil;
 import org.example.expert.domain.common.exception.InvalidRequestException;

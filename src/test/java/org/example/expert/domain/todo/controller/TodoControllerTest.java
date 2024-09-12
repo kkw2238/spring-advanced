@@ -1,12 +1,12 @@
-package org.example.expert.domain.user.controller;
+package org.example.expert.domain.todo.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import config.TestObjectFactory;
 import config.TestWebConfig;
 import org.example.expert.config.filter.FilterConfig;
-import org.example.expert.domain.user.dto.request.UserChangePasswordRequest;
+import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
+import org.example.expert.domain.todo.service.TodoService;
 import org.example.expert.domain.user.entity.User;
-import org.example.expert.domain.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,16 +21,15 @@ import org.springframework.web.context.WebApplicationContext;
 import java.security.Principal;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(
-        controllers = {UserController.class},
+        controllers = {TodoController.class},
         excludeFilters = {
                 @ComponentScan.Filter(
                         type = FilterType.ASSIGNABLE_TYPE,
@@ -38,12 +37,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 )
         }
 )
-public class UserControllerTest {
+public class TodoControllerTest {
     @Autowired
     private WebApplicationContext wac;
-
     @MockBean
-    private UserService userService;
+    private TodoService todoService;
     private MockMvc mockMvc;
     private Principal mockPrincipal;
 
@@ -52,52 +50,69 @@ public class UserControllerTest {
         mockMvc = TestWebConfig.setFilter(wac);
     }
 
-    /**
-     * user 초기 설정하는 메서드
-     */
     private void userSetup(User user) {
         mockPrincipal = TestWebConfig.userSetup(user);
     }
 
+
     @Test
-    void 유저_정보_조회에_성공한다() throws Exception {
+    void Todo_작성_성공() throws Exception {
         // given
         long userId = 1L;
         User user = TestObjectFactory.createUser(userId);
 
         userSetup(user);
+        TodoSaveRequest todoSaveRequest = new TodoSaveRequest("Title", "Contents");
+        String bodyContent = new ObjectMapper().writeValueAsString(todoSaveRequest);
 
         // when - then
-        mockMvc.perform(get("/users/{userId}", userId)
-                        // 유저 정보
-                        .principal(mockPrincipal))
-                .andExpect(status().isOk())
-                .andDo(print());
-
-        verify(userService, times(1)).getUser(userId);
-    }
-
-    @Test
-    void 비밀번호_변경에_성공한다() throws Exception {
-        // given
-        long userId = 1L;
-        User user = TestObjectFactory.createUser(userId);
-        userSetup(user);
-
-        UserChangePasswordRequest userChangePasswordRequest = new UserChangePasswordRequest("1234", " 12345");
-        String bodyContent = new ObjectMapper().writeValueAsString(userChangePasswordRequest);
-
-        // when - then
-        mockMvc.perform(put("/users")
-                        // RequestBody Type은 JSON 형태로 작성
+        mockMvc.perform(post("/todos")
                         .contentType(MediaType.APPLICATION_JSON)
-                        // 내용
                         .content(bodyContent)
                         // 유저 정보
                         .principal(mockPrincipal))
                 .andExpect(status().isOk())
                 .andDo(print());
 
-        verify(userService, times(1)).changePassword(eq(userId), any());
+        verify(todoService, times(1)).saveTodo(any(), any());
+    }
+
+    @Test
+    void Todo_페이징_조회_성공() throws Exception {
+        // given
+        int page = 1;
+        int size = 10;
+        long userId = 1L;
+        User user = TestObjectFactory.createUser(userId);
+
+        userSetup(user);
+
+        // when - then
+        mockMvc.perform(get("/todos?page={page}&size={size}", page, size)
+                        // 유저 정보
+                        .principal(mockPrincipal))
+                .andExpect(status().isOk())
+                .andDo(print());
+
+        verify(todoService, times(1)).getTodos(page, size);
+    }
+
+    @Test
+    void Todo_조회_성공() throws Exception {
+        // given
+        long userId = 1L;
+        long todoId = 1L;
+        User user = TestObjectFactory.createUser(userId);
+
+        userSetup(user);
+
+        // when - then
+        mockMvc.perform(get("/todos/{todoId}", todoId)
+                        // 유저 정보
+                        .principal(mockPrincipal))
+                .andExpect(status().isOk())
+                .andDo(print());
+
+        verify(todoService, times(1)).getTodo(todoId);
     }
 }

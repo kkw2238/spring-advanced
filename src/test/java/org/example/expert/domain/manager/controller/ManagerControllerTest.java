@@ -1,12 +1,13 @@
-package org.example.expert.domain.user.controller;
+package org.example.expert.domain.manager.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import config.TestObjectFactory;
 import config.TestWebConfig;
+import org.example.expert.config.JwtUtil;
 import org.example.expert.config.filter.FilterConfig;
-import org.example.expert.domain.user.dto.request.UserChangePasswordRequest;
+import org.example.expert.domain.manager.dto.request.ManagerSaveRequest;
+import org.example.expert.domain.manager.service.ManagerService;
 import org.example.expert.domain.user.entity.User;
-import org.example.expert.domain.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +25,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(
-        controllers = {UserController.class},
+        controllers = {ManagerController.class},
         excludeFilters = {
                 @ComponentScan.Filter(
                         type = FilterType.ASSIGNABLE_TYPE,
@@ -38,12 +38,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 )
         }
 )
-public class UserControllerTest {
+public class ManagerControllerTest {
     @Autowired
     private WebApplicationContext wac;
-
     @MockBean
-    private UserService userService;
+    private ManagerService managerService;
+    @MockBean
+    private JwtUtil jwtUtil;
+
     private MockMvc mockMvc;
     private Principal mockPrincipal;
 
@@ -52,52 +54,71 @@ public class UserControllerTest {
         mockMvc = TestWebConfig.setFilter(wac);
     }
 
-    /**
-     * user 초기 설정하는 메서드
-     */
     private void userSetup(User user) {
         mockPrincipal = TestWebConfig.userSetup(user);
     }
 
     @Test
-    void 유저_정보_조회에_성공한다() throws Exception {
+    void 매니저_등록에_성공한다() throws Exception {
         // given
+        long todoId = 1L;
         long userId = 1L;
         User user = TestObjectFactory.createUser(userId);
 
         userSetup(user);
 
-        // when - then
-        mockMvc.perform(get("/users/{userId}", userId)
-                        // 유저 정보
-                        .principal(mockPrincipal))
-                .andExpect(status().isOk())
-                .andDo(print());
-
-        verify(userService, times(1)).getUser(userId);
-    }
-
-    @Test
-    void 비밀번호_변경에_성공한다() throws Exception {
-        // given
-        long userId = 1L;
-        User user = TestObjectFactory.createUser(userId);
-        userSetup(user);
-
-        UserChangePasswordRequest userChangePasswordRequest = new UserChangePasswordRequest("1234", " 12345");
-        String bodyContent = new ObjectMapper().writeValueAsString(userChangePasswordRequest);
+        ManagerSaveRequest managerSaveRequest = new ManagerSaveRequest(todoId);
+        String bodyContent = new ObjectMapper().writeValueAsString(managerSaveRequest);
 
         // when - then
-        mockMvc.perform(put("/users")
-                        // RequestBody Type은 JSON 형태로 작성
+        mockMvc.perform(post("/todos/{todoId}/managers", todoId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        // 내용
                         .content(bodyContent)
                         // 유저 정보
                         .principal(mockPrincipal))
                 .andExpect(status().isOk())
                 .andDo(print());
 
-        verify(userService, times(1)).changePassword(eq(userId), any());
+        verify(managerService, times(1)).saveManager(any(), eq(todoId), any());
+    }
+
+    @Test
+    void 해당_스케쥴에_참여중인_매니저들의_정보조회를_성공한다() throws Exception {
+        // given
+        long todoId = 1L;
+        long userId = 1L;
+        User user = TestObjectFactory.createUser(userId);
+
+        userSetup(user);
+
+        // when - then
+        mockMvc.perform(get("/todos/{todoId}/managers", todoId)
+                        // 유저 정보
+                        .principal(mockPrincipal))
+                .andExpect(status().isOk())
+                .andDo(print());
+
+        verify(managerService, times(1)).getManagers(eq(todoId));
+    }
+
+    @Test
+    void 스케쥴에_참여중인_매니저를_제외한다() throws Exception {
+        // given
+        long todoId = 1L;
+        long managerId = 1L;
+        long userId = 2L;
+
+        User user = TestObjectFactory.createUser(userId);
+
+        userSetup(user);
+
+        // when - then
+        mockMvc.perform(delete("/todos/{todoId}/managers/{managerId}", todoId, managerId)
+                        // 유저 정보
+                        .principal(mockPrincipal))
+                .andExpect(status().isOk())
+                .andDo(print());
+
+        verify(managerService, times(1)).deleteManager(userId, todoId, managerId);
     }
 }

@@ -23,6 +23,12 @@ public class MockTestFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         try {
+            String url = request.getRequestURI();
+            if (url.startsWith("/auth")) {
+                filterChain.doFilter(request, servletResponse);
+                return;
+            }
+
             // request에 담긴 인증된 유저 정보를 추출
             Authentication authentication = (Authentication)request.getUserPrincipal();
 
