@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -56,10 +55,34 @@ class CommentServiceTest {
     }
 
     @Test
+    public void comment를_등록할_유저가_해당_Todo에_참여하고_있지않으면_IRE를_반환한다() {
+        // given
+        long todoId = 1L;
+        long userId = 1L;
+        long anotherUserId = 2L;
+
+        CommentSaveRequest request = new CommentSaveRequest("contents");
+        AuthUser authUser = TestObjectFactory.createAuthUser(userId);
+        User anotherUser = TestObjectFactory.createUser(anotherUserId);
+        Todo todo = TestObjectFactory.createTodo(anotherUser);
+
+        given(todoRepository.findById(anyLong())).willReturn(Optional.of(todo));
+
+        // when
+        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () -> {
+            commentService.saveComment(authUser, todoId, request);
+        });
+
+        // then
+        assertEquals("해당 유저는 담당 매니저가 아닙니다", exception.getMessage());
+    }
+
+    @Test
     public void comment를_정상적으로_등록한다() {
         // given
         long todoId = 1;
         long userId = 1;
+
         CommentSaveRequest request = new CommentSaveRequest("contents");
         AuthUser authUser = TestObjectFactory.createAuthUser(userId);
         User user = TestObjectFactory.createUser(userId);
@@ -67,7 +90,6 @@ class CommentServiceTest {
         Comment comment = new Comment(request.getContents(), user, todo);
 
         given(todoRepository.findById(anyLong())).willReturn(Optional.of(todo));
-        when(todoRepository.findById(anyLong())).thenReturn(Optional.of(todo));
         given(commentRepository.save(any())).willReturn(comment);
 
         // when

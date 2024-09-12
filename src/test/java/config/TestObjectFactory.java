@@ -29,7 +29,6 @@ public class TestObjectFactory {
         return todo;
     }
 
-
     public static Todo createTodo(TodoSaveRequest todoSaveRequest, User user, Long todoId) {
         return new Todo(todoSaveRequest.getTitle(), todoSaveRequest.getContents(), "Sunny", user);
     }

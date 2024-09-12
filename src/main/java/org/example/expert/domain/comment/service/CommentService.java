@@ -8,6 +8,7 @@ import org.example.expert.domain.comment.entity.Comment;
 import org.example.expert.domain.comment.repository.CommentRepository;
 import org.example.expert.domain.common.dto.AuthUser;
 import org.example.expert.domain.common.exception.InvalidRequestException;
+import org.example.expert.domain.manager.entity.Manager;
 import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.todo.repository.TodoRepository;
 import org.example.expert.domain.user.dto.response.UserResponse;
@@ -38,6 +39,10 @@ public class CommentService {
                 todo
         );
 
+        if (!isTodoManager(user.getId(), todo)) {
+            throw new InvalidRequestException("해당 유저는 담당 매니저가 아닙니다");
+        }
+
         Comment savedComment = commentRepository.save(newComment);
 
         return new CommentSaveResponse(
@@ -61,5 +66,23 @@ public class CommentService {
             dtoList.add(dto);
         }
         return dtoList;
+    }
+
+    /**
+     * todo에 참여한 manager중에 해당 Id를 가진 사람이 있는지 확인하는 메서드
+     * @param managerId 확인할 매니져 Id
+     * @param todo 확인할 todo 객체
+     * @return True : 해당 매니져는 Todo에 참여하고 있다 / False : 해당 매니져는 Todo에 참여하고 있지 않다.
+     */
+    private boolean isTodoManager(long managerId, Todo todo) {
+        List<Manager> managers = todo.getManagers();
+
+        for (Manager manager : managers) {
+            if (manager.getUser().getId() == managerId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

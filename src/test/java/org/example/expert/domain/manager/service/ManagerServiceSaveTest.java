@@ -90,7 +90,6 @@ public class ManagerServiceSaveTest {
         long todoId = 1L;
         long managerUserId = 2L;
 
-
         Todo todo = new Todo();
         ReflectionTestUtils.setField(todo, "user", null);
 
