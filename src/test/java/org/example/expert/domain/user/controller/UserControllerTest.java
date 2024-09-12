@@ -1,6 +1,7 @@
 package org.example.expert.domain.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.expert.TestObjectFactory;
 import org.example.expert.config.UserDetailsImpl;
 import org.example.expert.config.aop.UserRoleLogAspect;
 import org.example.expert.config.filter.FilterConfig;
@@ -8,7 +9,7 @@ import org.example.expert.config.filter.MockTestFilter;
 import org.example.expert.domain.user.dto.request.UserRoleChangeRequest;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
-import org.example.expert.domain.user.service.UserAdminService;
+import org.example.expert.domain.user.service.admin.UserAdminServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,7 @@ public class UserControllerTest {
     @Autowired
     private WebApplicationContext wac;
     @MockBean
-    private UserAdminService userAdminService;
+    private UserAdminServiceTest userAdminService;
 
     private UserRoleChangeRequest userRoleChangeRequest;
     private MockMvc mockMvc;
@@ -64,11 +65,9 @@ public class UserControllerTest {
      */
     private void userSetup() {
         long userId = 1L;
-        String email = "test@a.com";
-        String password = "password";
-        UserRole role = UserRole.ADMIN;
 
-        User testUser = new User(userId, email, password, role);
+        User testUser = TestObjectFactory.createUser(userId);
+        testUser.updateRole(UserRole.ADMIN);
         UserDetailsImpl userDetails = new UserDetailsImpl(testUser);
         mockPrincipal = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }

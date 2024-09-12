@@ -1,15 +1,15 @@
 package org.example.expert.domain.comment.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.expert.TestObjectFactory;
 import org.example.expert.config.UserDetailsImpl;
 import org.example.expert.config.aop.UserRoleLogAspect;
 import org.example.expert.config.filter.FilterConfig;
 import org.example.expert.config.filter.MockTestFilter;
 import org.example.expert.domain.comment.service.CommentAdminService;
+import org.example.expert.domain.comment.service.CommentAdminServiceTest;
 import org.example.expert.domain.user.dto.request.UserRoleChangeRequest;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
-import org.example.expert.domain.user.service.UserAdminService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -27,6 +26,8 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.security.Principal;
 
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -67,12 +68,11 @@ public class CommentAdminControllerTest {
      */
     private void userSetup() {
         long userId = 2L;
-        String email = "test@a.com";
-        String password = "password";
-        UserRole role = UserRole.ADMIN;
 
-        User testUser = new User(userId, email, password, role);
-        UserDetailsImpl userDetails = new UserDetailsImpl(testUser);
+        User user = TestObjectFactory.createUser(userId);
+        user.updateRole(UserRole.ADMIN);
+
+        UserDetailsImpl userDetails = new UserDetailsImpl(user);
         mockPrincipal = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
